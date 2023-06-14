@@ -48,8 +48,7 @@ def clean_test(data):
     le = preprocessing.LabelEncoder()
 
     for col in cols:
-        data[col] = le.fit_transform(data[col])
-        print(le.classes_)
+        data[col] = enconders[col].transform(data[col])
     # Using a Label Encoder to change all the strings into numerical values
 
     cols = ["VIP", "CryoSleep"]
@@ -88,6 +87,7 @@ def clean(data):
 
     for col in cols:
         data[col] = le.fit_transform(data[col])
+        enconders[col] = le.fit()
         print(le.classes_)
     # Using a Label Encoder to change all the strings into numerical values
 
@@ -104,7 +104,9 @@ cleaned_test = clean_test(test)
 
 y = cleaned_data["Transported"]
 X = cleaned_data.drop(["Transported"], axis=1)
-X = preprocessing.StandardScaler().fit_transform(X)
+scaler = preprocessing.StandardScaler().fit(X)
+X = preprocessing.StandardScaler().transform(scaler)
+cleaned_test = preprocessing.StandardScaler().transform(scaler)
 # scaling the data
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
 # making the train and validation split
