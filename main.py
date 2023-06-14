@@ -10,6 +10,52 @@ from sklearn.model_selection import GridSearchCV
 
 data = pd.read_csv("data/train.csv")
 test = pd.read_csv("data/test.csv")
+passengerid = test["PassengerId"]
+
+
+def clean_test(data):
+    data = data.drop(["Name", "PassengerId"], axis=1)
+    # Dropping useless columns
+
+    data["Cabin_Deck"] = data["Cabin"].str.slice(0, 1)
+    data["Cabin_SP"] = data["Cabin"].str.split(pat="/")
+    data["Cabin_SP"] = data["Cabin_SP"].str[2]
+    data = data.drop("Cabin", axis=1)
+    # Splitting the Cabin column to make it more usable
+
+    data.Age.fillna(data["Age"].mean(), inplace=True)
+    data.RoomService.fillna(0, inplace=True)
+    data.FoodCourt.fillna(0, inplace=True)
+    data.Spa.fillna(0, inplace=True)
+    data.ShoppingMall.fillna(0, inplace=True)
+    data.VRDeck.fillna(0, inplace=True)
+    data.HomePlanet.fillna("Earth", inplace=True)
+    data.Destination.fillna("55 Cancri e", inplace=True)
+    data.Cabin_Deck.fillna("C", inplace=True)
+    data.Cabin_SP.fillna("S", inplace=True)
+    data.VIP.fillna(True, inplace=True)
+    data.CryoSleep.fillna(False, inplace=True)
+    # filling the empty spaces in the columns with a mean or 0 or random value
+
+
+
+    print(data.shape)
+    print(data.shape)
+
+    le = preprocessing.LabelEncoder()
+
+    cols = ["HomePlanet", "Destination", "Cabin_Deck", "Cabin_SP"]
+
+    for col in cols:
+        data[col] = le.fit_transform(data[col])
+        print(le.classes_)
+    # Using a Label Encoder to change all the strings into numerical values
+
+    cols = ["VIP", "CryoSleep"]
+    for col in cols:
+        data[col] = data[col].astype(int)
+    # Converting boolean data to numerical values
+    return data
 
 
 def clean(data):
@@ -52,6 +98,7 @@ def clean(data):
 
 
 cleaned_data = clean(data)
+cleaned_test = clean_test(test)
 # cleaning the data
 
 y = cleaned_data["Transported"]
@@ -65,6 +112,8 @@ X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
 def testmodel(model):
     predictions = model.predict(X_val)
     return accuracy_score(y_val, predictions)
+
+
 # Making a function to test accuracy easily
 
 
@@ -118,3 +167,9 @@ print("Logistic Regression --> " + str(testmodel(logisticregressionmodel)))
 print("Random Forest --> " + str(testmodel(randomforestmodel)))
 print("XGBoost --> " + str(testmodel(xgbmodel)))
 print("Extra Trees --> " + str(testmodel(extratreesmodel)))
+
+submission_pred = extratreesmodel.predict(cleaned_test)
+df = pd.DataFrame({"PassengerId": passengerid.values,
+                   "Transported": submission_pred})
+
+df.to_csv("submission.csv", index=False)
