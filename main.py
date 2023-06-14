@@ -13,6 +13,7 @@ test = pd.read_csv("data/test.csv")
 passengerid = test["PassengerId"]
 enconders = {}
 
+
 def clean_test(data):
     data = data.drop(["Name", "PassengerId"], axis=1)
     # Dropping useless columns
@@ -37,11 +38,7 @@ def clean_test(data):
     data.CryoSleep.fillna(False, inplace=True)
     # filling the empty spaces in the columns with a mean or 0 or random value
 
-
-
     print(data.shape)
-    print(data.shape)
-
 
     cols = ["HomePlanet", "Destination", "Cabin_Deck", "Cabin_SP"]
 
@@ -86,9 +83,9 @@ def clean(data):
     le = preprocessing.LabelEncoder()
 
     for col in cols:
-        data[col] = le.fit_transform(data[col])
-        enconders[col] = le.fit()
-        print(le.classes_)
+        le = preprocessing.LabelEncoder()
+        enconders[col] = le.fit(data[col])
+        data[col] = enconders[col].transform(data[col])
     # Using a Label Encoder to change all the strings into numerical values
 
     cols = ["VIP", "CryoSleep"]
@@ -105,10 +102,12 @@ cleaned_test = clean_test(test)
 y = cleaned_data["Transported"]
 X = cleaned_data.drop(["Transported"], axis=1)
 scaler = preprocessing.StandardScaler().fit(X)
-X = preprocessing.StandardScaler().transform(scaler)
-cleaned_test = preprocessing.StandardScaler().transform(scaler)
+X = scaler.transform(X)
+cleaned_test = scaler.transform(cleaned_test)
 # scaling the data
 X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2)
+
+
 # making the train and validation split
 
 
