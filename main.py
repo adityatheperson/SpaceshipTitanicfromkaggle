@@ -11,7 +11,7 @@ from sklearn.model_selection import GridSearchCV
 data = pd.read_csv("data/train.csv")
 test = pd.read_csv("data/test.csv")
 passengerid = test["PassengerId"]
-
+enconders = {}
 
 def clean_test(data):
     data = data.drop(["Name", "PassengerId"], axis=1)
@@ -42,9 +42,10 @@ def clean_test(data):
     print(data.shape)
     print(data.shape)
 
-    le = preprocessing.LabelEncoder()
 
     cols = ["HomePlanet", "Destination", "Cabin_Deck", "Cabin_SP"]
+
+    le = preprocessing.LabelEncoder()
 
     for col in cols:
         data[col] = le.fit_transform(data[col])
@@ -81,9 +82,9 @@ def clean(data):
     print(data.shape)
     # checking how much data was lost
 
-    le = preprocessing.LabelEncoder()
-
     cols = ["HomePlanet", "Destination", "Cabin_Deck", "Cabin_SP"]
+
+    le = preprocessing.LabelEncoder()
 
     for col in cols:
         data[col] = le.fit_transform(data[col])
