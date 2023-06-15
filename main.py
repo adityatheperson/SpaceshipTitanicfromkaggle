@@ -30,14 +30,21 @@ def clean_test(data):
     data.Spa.fillna(0, inplace=True)
     data.ShoppingMall.fillna(0, inplace=True)
     data.VRDeck.fillna(0, inplace=True)
-    data.HomePlanet.fillna("Earth", inplace=True)
-    data.Destination.fillna("55 Cancri e", inplace=True)
-    data.Cabin_Deck.fillna("C", inplace=True)
-    data.Cabin_SP.fillna("S", inplace=True)
-    data.VIP.fillna(True, inplace=True)
-    data.CryoSleep.fillna(False, inplace=True)
+    data.HomePlanet.fillna("U", inplace=True)
+    data.Destination.fillna("U", inplace=True)
+    data.Cabin_Deck.fillna("U", inplace=True)
+    data.Cabin_SP.fillna("U", inplace=True)
     # filling the empty spaces in the columns with a mean or 0 or random value
+    data["VIP"] = data["VIP"].replace(True, 2)
+    data["VIP"] = data["VIP"].replace(False, 1)
+    data.VIP.fillna(3, inplace= True)
 
+    data["CryoSleep"] = data["CryoSleep"].replace(True, 2)
+    data["CryoSleep"] = data["CryoSleep"].replace(False, 1)
+    data.CryoSleep.fillna(3, inplace=True)
+
+    print(data.shape)
+    data.dropna()
     print(data.shape)
 
     cols = ["HomePlanet", "Destination", "Cabin_Deck", "Cabin_SP"]
@@ -48,10 +55,6 @@ def clean_test(data):
         data[col] = enconders[col].transform(data[col])
     # Using a Label Encoder to change all the strings into numerical values
 
-    cols = ["VIP", "CryoSleep"]
-    for col in cols:
-        data[col] = data[col].astype(int)
-    # Converting boolean data to numerical values
     return data
 
 
@@ -59,19 +62,32 @@ def clean(data):
     data = data.drop(["Name", "PassengerId"], axis=1)
     # Dropping useless columns
 
+    data["Cabin_Deck"] = data["Cabin"].str.slice(0, 1)
+    data["Cabin_SP"] = data["Cabin"].str.split(pat="/")
+    data["Cabin_SP"] = data["Cabin_SP"].str[2]
+    data = data.drop("Cabin", axis=1)
+    # Splitting the Cabin column to make it more usable
+
+    data.HomePlanet.fillna("U", inplace=True)
+    data.Destination.fillna("U", inplace=True)
+    data.Cabin_Deck.fillna("U", inplace=True)
+    data.Cabin_SP.fillna("U", inplace=True)
     data.Age.fillna(data["Age"].mean(), inplace=True)
     data.RoomService.fillna(0, inplace=True)
     data.FoodCourt.fillna(0, inplace=True)
     data.Spa.fillna(0, inplace=True)
     data.ShoppingMall.fillna(0, inplace=True)
     data.VRDeck.fillna(0, inplace=True)
-    # filling the empty spaces in the columns with a mean or 0
 
-    data["Cabin_Deck"] = data["Cabin"].str.slice(0, 1)
-    data["Cabin_SP"] = data["Cabin"].str.split(pat="/")
-    data["Cabin_SP"] = data["Cabin_SP"].str[2]
-    data = data.drop("Cabin", axis=1)
-    # Splitting the Cabin column to make it more usable
+    data["VIP"] = data["VIP"].replace(True, 2)
+    data["VIP"] = data["VIP"].replace(False, 1)
+    data.VIP.fillna(3, inplace= True)
+
+    data["CryoSleep"] = data["CryoSleep"].replace(True, 2)
+    data["CryoSleep"] = data["CryoSleep"].replace(False, 1)
+    data.CryoSleep.fillna(3, inplace=True)
+
+    # filling the empty spaces in the columns with a mean or 0
 
     print(data.shape)
     data = data.dropna()
@@ -88,15 +104,13 @@ def clean(data):
         data[col] = enconders[col].transform(data[col])
     # Using a Label Encoder to change all the strings into numerical values
 
-    cols = ["VIP", "CryoSleep"]
-    for col in cols:
-        data[col] = data[col].astype(int)
-    # Converting boolean data to numerical values
     return data
 
 
 cleaned_data = clean(data)
 cleaned_test = clean_test(test)
+
+
 # cleaning the data
 
 y = cleaned_data["Transported"]
@@ -150,12 +164,12 @@ xgbmodel.fit(X_train, y_train)
 # an XGBClassifier with optimized settings, accuracy score -> 0.8087855297157622
 
 
-# model = TPOTClassifier(generations=5, population_size=20, cv=5,
-#                        random_state=42, verbosity=2)
-# model.fit(X_train, y_train)
-# print(model.score(X_val, y_val))
-# model.export('tpot_exported_pipeline.py')
-# trying to find the best model + settings, using tpot.
+model = TPOTClassifier(generations=5, population_size=20, cv=5,
+                       random_state=42, verbosity=2)
+model.fit(X_train, y_train)
+print(model.score(X_val, y_val))
+model.export('tpot_exported_pipeline.py')
+#trying to find the best model + settings, using tpot.
 
 
 extratreesmodel = ExtraTreesClassifier(bootstrap=True, criterion="gini", max_features=0.7500000000000001,
@@ -165,13 +179,13 @@ extratreesmodel.fit(X_train, y_train)
 # 'best' model found using tpot, accuracy score -> 0.810077519379845
 
 
-print("Logistic Regression --> " + str(testmodel(logisticregressionmodel)))
-print("Random Forest --> " + str(testmodel(randomforestmodel)))
-print("XGBoost --> " + str(testmodel(xgbmodel)))
-print("Extra Trees --> " + str(testmodel(extratreesmodel)))
+# print("Logistic Regression --> " + str(testmodel(logisticregressionmodel)))
+# print("Random Forest --> " + str(testmodel(randomforestmodel)))
+# print("XGBoost --> " + str(testmodel(xgbmodel)))
+# print("Extra Trees --> " + str(testmodel(extratreesmodel)))
 
-submission_pred = extratreesmodel.predict(cleaned_test)
-df = pd.DataFrame({"PassengerId": passengerid.values,
-                   "Transported": submission_pred})
-
-df.to_csv("submission.csv", index=False)
+# submission_pred = extratreesmodel.predict(cleaned_test)
+# df = pd.DataFrame({"PassengerId": passengerid.values,
+#                    "Transported": submission_pred})
+#
+# df.to_csv("submission.csv", index=False)
