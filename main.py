@@ -7,6 +7,7 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 import xgboost as xgb
 from tpot import TPOTClassifier
 from sklearn.model_selection import GridSearchCV
+import warnings
 
 data = pd.read_csv("data/train.csv")
 test = pd.read_csv("data/test.csv")
@@ -164,8 +165,23 @@ xgbmodel.fit(X_train, y_train)
 
 from sklearn.neural_network import MLPClassifier
 
-mlpmodel = MLPClassifier(hidden_layer_sizes=(8, 8, 8), activation='relu', solver='adam', max_iter=500)
+mlpmodel = MLPClassifier(activation="tanh", alpha=0.05, hidden_layer_sizes=(150, 100, 50), learning_rate='constant',
+                         max_iter=100, solver='adam')
 mlpmodel.fit(X_train, y_train)
+
+param_grid = {
+    'hidden_layer_sizes': [(150, 100, 50), (120, 80, 40), (100, 50, 30)],
+    'max_iter': [50, 100, 150],
+    'activation': ['tanh', 'relu'],
+    'solver': ['sgd', 'adam'],
+    'alpha': [0.0001, 0.05],
+    'learning_rate': ['constant', 'adaptive'],
+}
+# grid = GridSearchCV(mlpmodel, param_grid, n_jobs= -1, cv=5)
+# grid.fit(X_train, y_train)
+#
+# print(grid.best_params_)
+# warnings.filterwarnings("warn")
 
 # model = TPOTClassifier(generations=5, population_size=20, cv=5,
 #                        random_state=42, verbosity=2)
@@ -186,7 +202,7 @@ print("Logistic Regression --> " + str(testmodel(logisticregressionmodel)))
 print("Random Forest --> " + str(testmodel(randomforestmodel)))
 print("XGBoost --> " + str(testmodel(xgbmodel)))
 print("Extra Trees --> " + str(testmodel(extratreesmodel)))
-print("MLP --> "+ str(testmodel(mlpmodel)))
+print("MLP --> " + str(testmodel(mlpmodel)))
 
 # submission_pred = extratreesmodel.predict(cleaned_test)
 # df = pd.DataFrame({"PassengerId": passengerid.values,
